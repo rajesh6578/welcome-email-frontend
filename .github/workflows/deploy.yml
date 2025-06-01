@@ -7,6 +7,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,13 +22,13 @@ jobs:
           npm install
           npm run build
 
-      - name: List build directory
-        run: ls -lh build/
+      - name: Check build contents
+        run: ls -R build/
 
-      - name: Package frontend
+      - name: Package frontend build
         run: tar -czvf frontend-build.tar.gz -C build .
 
-      - name: Deploy Frontend
+      - name: Upload frontend to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -36,14 +37,16 @@ jobs:
           source: "frontend-build.tar.gz"
           target: "/var/www/frontend/"
 
-      - name: Extract and Restart Nginx
+      - name: Extract build and restart Nginx
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            sudo mkdir -p /var/www/frontend
+            sudo chown $USER:$USER /var/www/frontend
             cd /var/www/frontend
             tar -xzvf frontend-build.tar.gz
             rm -f frontend-build.tar.gz
-            sudo systemctl restart nginx
+            sudo systemctl reload nginx  # Or restart nginx if needed

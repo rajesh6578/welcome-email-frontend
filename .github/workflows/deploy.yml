@@ -24,11 +24,7 @@ jobs:
       - name: Package frontend
         run: tar -czvf frontend-build.tar.gz -C build .
 
-      - name: Set SSH Key Permissions
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
-          chmod 600 ~/.ssh/ec2_key
+
 
       - name: Deploy Frontend
         uses: appleboy/scp-action@v0.1.4

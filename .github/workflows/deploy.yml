@@ -31,9 +31,10 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}  # Directly from secrets
           source: "frontend-build.tar.gz"
           target: "/var/www/frontend/"
+
 
       - name: Restart Services
         uses: appleboy/ssh-action@v1.2.2

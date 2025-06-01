@@ -1,0 +1,65 @@
+name: Deploy Fullstack
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Backend Build (Java)
+      - name: Build JAR
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+      - run: mvn clean package
+
+      # Frontend Build (Node.js)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: |
+          cd frontend
+          npm install
+          npm run build
+      - name: Package frontend
+        run: tar -czvf frontend-build.tar.gz -C frontend/build .
+
+      # Deploy Backend
+      - name: Deploy Backend
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "target/*.jar"
+          target: "/home/ec2-user/app/"
+
+      # Deploy Frontend
+      - name: Deploy Frontend
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "frontend-build.tar.gz"
+          target: "/var/www/frontend/"
+
+      # Post-Deploy Steps
+      - name: Restart Services
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo systemctl restart spring-boot-app
+            cd /var/www/frontend && tar -xzvf frontend-build.tar.gz
+            sudo systemctl restart nginx

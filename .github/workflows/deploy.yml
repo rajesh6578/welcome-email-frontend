@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 18
       - run: |
-          cd frontend
+          cd welcome-email-frontend
           npm install
           npm run build
       - name: Package frontend

@@ -8,11 +8,9 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Frontend Build (Node.js)
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -26,10 +24,12 @@ jobs:
       - name: Package frontend
         run: tar -czvf frontend-build.tar.gz -C build .
 
+      - name: Set SSH Key Permissions
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
 
-
-
-      # Deploy Frontend
       - name: Deploy Frontend
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -39,8 +39,6 @@ jobs:
           source: "frontend-build.tar.gz"
           target: "/var/www/frontend/"
 
-
-      # Post-Deploy Steps
       - name: Restart Services
         uses: appleboy/ssh-action@v1.2.2
         with:

@@ -17,12 +17,15 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: |
-          cd welcome-email-frontend
+
+      - name: Install dependencies and build frontend
+        run: |
           npm install
           npm run build
+
       - name: Package frontend
-        run: tar -czvf frontend-build.tar.gz -C frontend/build .
+        run: tar -czvf frontend-build.tar.gz -C build .
+
 
 
 
@@ -35,6 +38,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "frontend-build.tar.gz"
           target: "/var/www/frontend/"
+
 
       # Post-Deploy Steps
       - name: Restart Services

@@ -12,14 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Backend Build (Java)
-      - name: Build JAR
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'corretto'
-          java-version: '17'
-      - run: mvn clean package
-
       # Frontend Build (Node.js)
       - name: Setup Node.js
         uses: actions/setup-node@v3

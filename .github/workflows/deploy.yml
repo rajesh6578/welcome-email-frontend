@@ -1,4 +1,4 @@
-name: Deploy Fullstack
+name: Deploy Frontend to EC2
 
 on:
   push:
@@ -11,7 +11,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Frontend Build (Node.js)
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -22,10 +21,12 @@ jobs:
           npm install
           npm run build
 
+      - name: List build directory
+        run: ls -lh build/
+
       - name: Package frontend
         run: tar -czvf frontend-build.tar.gz -C build .
 
-      # Deploy Frontend (matching backend's structure)
       - name: Deploy Frontend
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -34,10 +35,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "frontend-build.tar.gz"
           target: "/var/www/frontend/"
-          strip_components: 0  # Keep directory structure intact
 
-      # Post-Deploy Steps (aligned with backend)
-      - name: Restart Services
+      - name: Extract and Restart Nginx
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -45,5 +44,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /var/www/frontend
-            tar -xzvf frontend-build.tar.gz --strip-components=0  # Explicit extraction
+            tar -xzvf frontend-build.tar.gz
+            rm -f frontend-build.tar.gz
             sudo systemctl restart nginx

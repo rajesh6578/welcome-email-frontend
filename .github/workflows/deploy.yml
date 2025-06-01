@@ -24,17 +24,14 @@ jobs:
       - name: Package frontend
         run: tar -czvf frontend-build.tar.gz -C build .
 
-
-
       - name: Deploy Frontend
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}  # Directly from secrets
+          key: ${{ secrets.EC2_SSH_KEY }}
           source: "frontend-build.tar.gz"
           target: "/var/www/frontend/"
-
 
       - name: Restart Services
         uses: appleboy/ssh-action@v1.2.2
